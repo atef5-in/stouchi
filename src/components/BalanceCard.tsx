@@ -43,8 +43,12 @@ export default function BalanceCard({
         {/* income / expense split — a single honest bar */}
         <div className="mt-5">
           <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-paper/12">
-            <div className="h-full bg-olive" style={{ width: `${inPct}%` }} />
-            <div className="h-full bg-clay" style={{ width: `${100 - inPct}%` }} />
+            {flow > 0 && (
+              <>
+                <div className="h-full bg-olive" style={{ width: `${inPct}%` }} />
+                <div className="h-full bg-clay" style={{ width: `${100 - inPct}%` }} />
+              </>
+            )}
           </div>
           <div className="mt-2.5 flex justify-between text-[0.78rem]">
             <span className="flex items-center gap-1.5 text-paper/70">
