@@ -18,104 +18,100 @@ export default function ConfirmLog({
 
   const isExpense = draft.type === "expense";
 
+  const field =
+    "w-full rounded-2xl border border-line bg-paper px-4 py-2.5 text-ink " +
+    "focus:outline-none focus:border-clay/50 focus:ring-2 focus:ring-clay/15 transition-all";
+
   return (
-    <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 space-y-4">
+    <div className="rise rounded-[1.4rem] border border-line bg-paper-card shadow-card p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-gray-800">Confirm transaction</h2>
-        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isExpense ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-700"}`}>
-          {isExpense ? "Expense" : "Income"}
+        <div className="flex items-center gap-2">
+          <span className={`h-1.5 w-1.5 rounded-full ${isExpense ? "bg-clay" : "bg-olive"}`} />
+          <h2 className="font-display text-lg font-semibold text-ink">Does this look right?</h2>
+        </div>
+        <span
+          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+            isExpense ? "bg-clay/12 text-clay" : "bg-olive/12 text-olive"
+          }`}
+        >
+          {isExpense ? "Spent" : "Earned"}
         </span>
       </div>
 
       {draft.clarify && (
-        <p className="text-sm text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
-          ⚠️ {draft.clarify}
+        <p className="rounded-2xl bg-saffron/12 px-3 py-2 text-sm text-clay-deep">
+          {draft.clarify}
         </p>
       )}
 
+      {/* The amount — the star of the card, in serif */}
+      <div className="rounded-2xl bg-ink px-4 py-4 text-paper">
+        <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-paper/55">Amount</span>
+        <div className="mt-1 flex items-end gap-2">
+          <input
+            type="number"
+            min={0}
+            step={0.001}
+            value={draft.amount}
+            onChange={(e) => set("amount", parseFloat(e.target.value) || 0)}
+            className="w-full bg-transparent font-display text-4xl font-semibold tnum text-paper
+                       focus:outline-none placeholder:text-paper/30"
+          />
+          <span className="mb-1.5 font-display text-base text-saffron">DT</span>
+        </div>
+      </div>
+
       {/* Type toggle */}
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-paper p-1">
         {(["expense", "income"] as const).map((t) => (
           <button
             key={t}
             onClick={() => set("type", t)}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all
-              ${draft.type === t
-                ? t === "expense" ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            className={`rounded-xl py-2.5 text-sm font-semibold transition-all ${
+              draft.type === t
+                ? t === "expense"
+                  ? "bg-clay text-paper shadow-sm"
+                  : "bg-olive text-paper shadow-sm"
+                : "text-ink-soft hover:text-ink"
+            }`}
           >
-            {t === "expense" ? "💸 Expense" : "💰 Income"}
+            {t === "expense" ? "Spent" : "Earned"}
           </button>
         ))}
       </div>
 
-      {/* Amount */}
       <label className="block">
-        <span className="text-xs text-gray-500 mb-1 block">Amount (TND)</span>
-        <input
-          type="number"
-          min={0}
-          step={0.001}
-          value={draft.amount}
-          onChange={(e) => set("amount", parseFloat(e.target.value) || 0)}
-          className="w-full rounded-xl border border-gray-200 px-4 py-2 text-lg font-semibold
-                     focus:outline-none focus:ring-2 focus:ring-[#E23A3A]"
-        />
-      </label>
-
-      {/* Category */}
-      <label className="block">
-        <span className="text-xs text-gray-500 mb-1 block">Category</span>
-        <input
-          type="text"
-          value={draft.category}
-          onChange={(e) => set("category", e.target.value)}
-          className="w-full rounded-xl border border-gray-200 px-4 py-2
-                     focus:outline-none focus:ring-2 focus:ring-[#E23A3A]"
-        />
+        <span className="mb-1.5 block text-xs font-medium text-ink-soft">Category</span>
+        <input type="text" value={draft.category} onChange={(e) => set("category", e.target.value)} className={field} />
         {draft.needsCategoryConfirmation && (
-          <p className="text-xs text-amber-500 mt-1">New category — will be created on confirm.</p>
+          <p className="mt-1.5 text-xs text-saffron">New category — we&apos;ll create it when you confirm.</p>
         )}
       </label>
 
-      {/* Note */}
       <label className="block">
-        <span className="text-xs text-gray-500 mb-1 block">Note</span>
-        <input
-          type="text"
-          value={draft.note}
-          onChange={(e) => set("note", e.target.value)}
-          className="w-full rounded-xl border border-gray-200 px-4 py-2
-                     focus:outline-none focus:ring-2 focus:ring-[#E23A3A]"
-        />
+        <span className="mb-1.5 block text-xs font-medium text-ink-soft">Note</span>
+        <input type="text" value={draft.note} onChange={(e) => set("note", e.target.value)} className={field} />
       </label>
 
-      {/* Date */}
       <label className="block">
-        <span className="text-xs text-gray-500 mb-1 block">Date</span>
-        <input
-          type="date"
-          value={draft.date}
-          onChange={(e) => set("date", e.target.value)}
-          className="w-full rounded-xl border border-gray-200 px-4 py-2
-                     focus:outline-none focus:ring-2 focus:ring-[#E23A3A]"
-        />
+        <span className="mb-1.5 block text-xs font-medium text-ink-soft">Date</span>
+        <input type="date" value={draft.date} onChange={(e) => set("date", e.target.value)} className={field} />
       </label>
 
       <div className="flex gap-3 pt-1">
         <button
           onClick={onCancel}
-          className="flex-1 rounded-xl border border-gray-200 py-3 text-gray-600
-                     hover:bg-gray-50 active:scale-95 transition-all"
+          className="flex-1 rounded-2xl border border-line py-3 font-medium text-ink-soft
+                     hover:bg-paper active:scale-95 transition-all"
         >
-          Cancel
+          Discard
         </button>
         <button
           onClick={() => onConfirm(draft)}
-          className="flex-1 rounded-xl bg-[#E23A3A] py-3 text-white font-semibold
-                     hover:bg-red-600 active:scale-95 transition-all"
+          className="flex-[1.4] rounded-2xl bg-clay py-3 font-semibold text-paper
+                     hover:bg-clay-deep active:scale-95 transition-all"
         >
-          ✅ Confirm
+          Save it
         </button>
       </div>
     </div>

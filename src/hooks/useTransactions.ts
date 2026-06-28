@@ -17,10 +17,9 @@ export function useTransactions() {
     setCategories(loadCategories());
   }, []);
 
-  const balance = transactions.reduce(
-    (sum, t) => (t.type === "income" ? sum + t.amount : sum - t.amount),
-    0
-  );
+  const income = transactions.reduce((s, t) => (t.type === "income" ? s + t.amount : s), 0);
+  const expense = transactions.reduce((s, t) => (t.type === "expense" ? s + t.amount : s), 0);
+  const balance = income - expense;
 
   const addTransaction = useCallback(
     (t: Omit<Transaction, "id" | "createdAt">) => {
@@ -60,5 +59,5 @@ export function useTransactions() {
     });
   }, []);
 
-  return { transactions, categories, balance, addTransaction, addCategory, deleteTransaction };
+  return { transactions, categories, balance, income, expense, addTransaction, addCategory, deleteTransaction };
 }

@@ -8,11 +8,12 @@ import VoiceInput from "@/components/VoiceInput";
 import TransactionList from "@/components/TransactionList";
 import ConfirmLog from "@/components/ConfirmLog";
 import AddCategoryModal from "@/components/AddCategoryModal";
+import Coin from "@/components/Coin";
 
 type Status = "idle" | "parsing" | "confirm" | "error";
 
 export default function Home() {
-  const { transactions, categories, balance, addTransaction, addCategory, deleteTransaction } =
+  const { transactions, categories, balance, income, expense, addTransaction, addCategory, deleteTransaction } =
     useTransactions();
 
   const [status, setStatus] = useState<Status>("idle");
@@ -99,34 +100,45 @@ export default function Home() {
   const handleCancel = () => { setParsed(null); setStatus("idle"); setErrorMsg(""); };
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-            Stouchi <span className="text-[#E23A3A]">🪙</span>
-          </h1>
-          <p className="text-xs text-gray-400">Your pocket money tracker</p>
+    <div className="space-y-6">
+      {/* Header — wordmark with the coin + Arabic name */}
+      <header className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Coin size={42} className="drop-shadow-sm" />
+          <div className="leading-none">
+            <h1 className="font-display text-[1.75rem] font-semibold tracking-tight text-ink">
+              Stouchi
+            </h1>
+            <p className="font-arabic text-sm text-ink-soft mt-0.5" dir="rtl">ستوشي · فلوسي</p>
+          </div>
         </div>
         <Link
           href="/dashboard"
-          className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-[#E23A3A] transition-colors"
+          aria-label="Dashboard"
+          className="grid h-11 w-11 place-items-center rounded-2xl border border-line bg-paper-card text-ink-soft
+                     shadow-card hover:text-clay hover:border-clay/40 active:scale-95 transition-all"
         >
-          <span>📊</span> Dashboard
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="6" y1="20" x2="6" y2="13" />
+            <line x1="12" y1="20" x2="12" y2="7" />
+            <line x1="18" y1="20" x2="18" y2="11" />
+          </svg>
         </Link>
-      </div>
+      </header>
 
-      {/* Balance */}
-      <BalanceCard balance={balance} />
+      {/* The wallet */}
+      <BalanceCard balance={balance} income={income} expense={expense} />
 
-      {/* Input area */}
+      {/* Input — the one main action */}
       {status !== "confirm" && (
-        <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 space-y-3">
-          <p className="text-sm font-medium text-gray-600 text-center">
-            {isParsing ? "Thinking…" : "What did you spend or earn?"}
-          </p>
+        <div className="rounded-[1.4rem] border border-line bg-paper-card shadow-card p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-clay" />
+            <p className="text-sm font-semibold text-ink">
+              {isParsing ? "Reading it…" : "Say what you spent or earned"}
+            </p>
+          </div>
 
-          {/* Unified input row: mic | text | send */}
           <div className="relative flex items-center gap-2">
             <VoiceInput onResult={handleVoiceResult} disabled={isParsing} />
             <input
@@ -137,28 +149,34 @@ export default function Home() {
               disabled={isParsing}
               placeholder="chrit 9 kilo tmamtem b 150 dinar…"
               aria-label="Describe your transaction"
-              className="flex-1 min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base
-                         placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E23A3A]
-                         focus:bg-white disabled:opacity-50 transition-colors"
+              className="flex-1 min-w-0 rounded-2xl border border-line bg-paper px-4 py-3 text-base text-ink
+                         placeholder:text-ink-soft/60 focus:outline-none focus:border-clay/50 focus:ring-2 focus:ring-clay/15
+                         disabled:opacity-50 transition-all"
             />
             <button
               onClick={handleSubmit}
               disabled={isParsing || !textValue.trim()}
               aria-label="Submit"
-              className="w-12 h-12 flex-shrink-0 rounded-xl bg-[#E23A3A] text-white text-lg font-bold
-                         flex items-center justify-center shadow-sm
-                         disabled:opacity-40 hover:bg-red-600 active:scale-95 transition-all"
+              className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl bg-clay text-paper
+                         disabled:opacity-30 hover:bg-clay-deep active:scale-95 transition-all"
             >
-              →
+              {isParsing ? (
+                <span className="h-4 w-4 rounded-full border-2 border-paper/40 border-t-paper animate-spin" />
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="13 6 19 12 13 18" />
+                </svg>
+              )}
             </button>
           </div>
 
           {status === "error" && (
-            <p className="text-sm text-red-500 text-center">{errorMsg}</p>
+            <p className="text-sm text-clay">{errorMsg}</p>
           )}
 
-          <p className="text-xs text-gray-400 text-center">
-            Speak or type in Tunisian, Arabic, or French
+          <p className="text-xs text-ink-soft/80">
+            Tunisian · العربية · français — say it however you talk.
           </p>
         </div>
       )}
@@ -168,9 +186,12 @@ export default function Home() {
         <ConfirmLog parsed={parsed} onConfirm={handleConfirm} onCancel={handleCancel} />
       )}
 
-      {/* Recent transactions */}
+      {/* The ledger */}
       <div>
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Recent</h2>
+        <div className="mb-3 flex items-center gap-3">
+          <h2 className="font-display text-lg font-semibold text-ink">The ledger</h2>
+          <div className="rule h-px flex-1" />
+        </div>
         <TransactionList
           transactions={transactions}
           categories={categories}

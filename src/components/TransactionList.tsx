@@ -3,7 +3,14 @@ import type { Transaction, Category } from "@/lib/types";
 import { formatTND } from "@/lib/format";
 
 function friendlyDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  const d = new Date(iso);
+  const today = new Date();
+  const y = new Date();
+  y.setDate(today.getDate() - 1);
+  const same = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+  if (same(d, today)) return "Today";
+  if (same(d, y)) return "Yesterday";
+  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
 }
 
 export default function TransactionList({
@@ -17,10 +24,10 @@ export default function TransactionList({
 }) {
   if (transactions.length === 0) {
     return (
-      <div className="rounded-2xl bg-white border border-gray-100 shadow-sm px-4 py-10 text-center">
-        <p className="text-3xl mb-2">✍️</p>
-        <p className="text-sm text-gray-500 font-medium">No transactions yet</p>
-        <p className="text-xs text-gray-400 mt-1">Add your first one above</p>
+      <div className="rounded-[1.4rem] border border-dashed border-line bg-paper-card/60 px-4 py-12 text-center">
+        <p className="font-display text-2xl text-ink-soft/70">٠٠٠</p>
+        <p className="mt-2 text-sm font-medium text-ink">Nothing logged yet</p>
+        <p className="mt-1 text-xs text-ink-soft">Say your first one above — try the example.</p>
       </div>
     );
   }
@@ -36,49 +43,63 @@ export default function TransactionList({
   }
 
   return (
-    <div className="space-y-4">
-      {groups.map(({ date, txns }) => (
-        <div key={date}>
-          <p className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">
-            {friendlyDate(date)}
-          </p>
-          <div className="space-y-2">
-            {txns.map((t) => {
-              const cat = catMap[t.categoryId];
-              return (
-                <div
-                  key={t.id}
-                  className="flex items-center gap-3 rounded-2xl bg-white border border-gray-100 shadow-sm px-4 py-3"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-xl flex-shrink-0">
-                    {cat?.icon ?? "📦"}
+    <div className="space-y-5">
+      {groups.map(({ date, txns }) => {
+        const dayNet = txns.reduce((s, t) => (t.type === "income" ? s + t.amount : s - t.amount), 0);
+        return (
+          <div key={date}>
+            <div className="mb-2 flex items-baseline justify-between px-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-ink-soft">
+                {friendlyDate(date)}
+              </p>
+              <p className={`font-display text-xs tnum ${dayNet >= 0 ? "text-olive" : "text-clay"}`}>
+                {dayNet >= 0 ? "+" : "−"}{formatTND(Math.abs(dayNet))}
+              </p>
+            </div>
+
+            {/* one card per day, rows divided by ledger rules */}
+            <div className="overflow-hidden rounded-[1.4rem] border border-line bg-paper-card shadow-card">
+              {txns.map((t, i) => {
+                const cat = catMap[t.categoryId];
+                const isIncome = t.type === "income";
+                return (
+                  <div
+                    key={t.id}
+                    className={`group flex items-center gap-3 px-3.5 py-3 ${i > 0 ? "border-t border-line/70" : ""}`}
+                  >
+                    <div className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-2xl bg-paper text-xl">
+                      {cat?.icon ?? "📦"}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[0.95rem] font-medium text-ink">{t.note || cat?.name || "—"}</p>
+                      <p className="text-xs text-ink-soft">{cat?.name}</p>
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <p className={`font-display text-base font-semibold tnum ${isIncome ? "text-olive" : "text-clay"}`}>
+                        {isIncome ? "+" : "−"}{formatTND(t.amount)}
+                      </p>
+                      <p className="text-[0.65rem] uppercase tracking-wider text-ink-soft/70">dt</p>
+                    </div>
+                    {onDelete && (
+                      <button
+                        onClick={() => onDelete(t.id)}
+                        aria-label="Delete transaction"
+                        className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full text-ink-soft/40
+                                   hover:bg-clay/10 hover:text-clay transition-colors"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">{t.note || cat?.name || "—"}</p>
-                    <p className="text-xs text-gray-400">{cat?.name}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className={`font-bold text-base ${t.type === "income" ? "text-emerald-600" : "text-red-500"}`}>
-                      {t.type === "income" ? "+" : "−"}{formatTND(t.amount)}
-                    </p>
-                    <p className="text-xs text-gray-400">TND</p>
-                  </div>
-                  {onDelete && (
-                    <button
-                      onClick={() => onDelete(t.id)}
-                      aria-label="Delete transaction"
-                      className="ml-1 w-7 h-7 rounded-full text-gray-300 hover:text-red-400 hover:bg-red-50
-                                 flex items-center justify-center text-lg transition-colors"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
